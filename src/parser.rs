@@ -54,6 +54,10 @@ impl MyParser {
     }
 
     pub fn get_view_path_from_node(&self, node: Node) -> Option<String> {
+        if node.kind() != "string_value" {
+            return None;
+        }
+
         if let Some(func_node) = self.get_parent_function_node(&node) {
             if let Some(func_name) = self.get_function_name_from_node(func_node) {
                 if "view" == func_name {
@@ -107,5 +111,15 @@ use super::MyParser;
         let node = my_parser.get_node_at_point(&point).unwrap();
 
         assert_eq!("resources/views/some/view.blade.php", my_parser.get_view_path_from_node(node).unwrap());
+    }
+
+    #[test]
+    fn call_from_function_it_self() {
+        let source_code = "<?php view('some.view');";
+        let my_parser = MyParser::new(source_code);
+        let point = Point {row: 0, column: 7};
+        let node = my_parser.get_node_at_point(&point).unwrap();
+
+        assert_eq!(None, my_parser.get_view_path_from_node(node));
     }
 }
